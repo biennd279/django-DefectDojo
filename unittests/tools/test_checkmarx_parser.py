@@ -271,7 +271,7 @@ class TestCheckmarxParser(DojoTestCase):
         self.assertEqual(False, item.verified)
         self.assertEqual(bool, type(item.false_p))
         # If at least one of the findings in the aggregate is exploitable, the defectdojo finding should not be "false positive"
-        self.assertEqual(False, item.false_p)
+        self.assertEqual(True, item.false_p)
         mock.assert_called_with(product, 'Java', files=2)
 
     # ----------------------------------------------------------------------------

@@ -152,12 +152,12 @@ class CheckmarxParser(object):
             title = "{} ({})".format(titleStart, sinkFilename.split("/")[-1])
         else:
             title = titleStart
-        false_p = result.get("FalsePositive")
         sev = result.get("Severity")
         aggregateKeys = "{}{}{}".format(cwe, sev, sinkFilename)
         state = result.get("state")
         active = self.isActive(state)
         verified = self.isVerified(state)
+        false_p = (result.get("FalsePositive") == "True") or self.isNotExploitable(state)
 
         if not (aggregateKeys in dupes):
             find = Finding(
@@ -168,7 +168,7 @@ class CheckmarxParser(object):
                 # another member of the aggregate, see "else" below
                 active=active,
                 verified=verified,
-                false_p=(false_p == "True"),
+                false_p=false_p,
                 # Concatenates the query information with this specific finding
                 # information
                 description=findingdetail + description,
@@ -306,7 +306,7 @@ class CheckmarxParser(object):
                 test=test,
                 active=self.isActive(state),
                 verified=self.isVerified(state),
-                false_p=result.get("FalsePositive") == "True",
+                false_p=(result.get("FalsePositive") == "True") or self.isNotExploitable(state),
                 description=findingdetail,
                 severity=sev,
                 file_path=sinkFilename,
@@ -380,6 +380,10 @@ class CheckmarxParser(object):
         # Confirmed, urgent
         verifiedStates = ["2", "3"]
         return state in verifiedStates
+
+    def isNotExploitable(self, state):
+        notExploitableStates = ["1"]
+        return state in notExploitableStates
 
     def get_findings(self, file, test):
         if file.name.strip().lower().endswith(".json"):
